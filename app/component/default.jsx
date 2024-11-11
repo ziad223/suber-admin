@@ -23,6 +23,17 @@ export default function DefaultLayout({ children }) {
     const [started, setStarted] = useState(false);
     const [auth, setAuth] = useState(false);
     const [logged, setLogged] = useState(false);
+    const [sidebar, setSidebar] = useState(false);
+
+    useEffect(() => {
+        const authPaths = ['/auth/login', '/auth/forget-password', '/auth/reset-password', '/auth/otp'];
+        if (!authPaths.some(path => pathname.includes(path)) && logged) {
+            setSidebar(true); // عرض السايدبار إذا لم يكن في صفحات المصادقة وكان المستخدم مسجلاً دخوله
+        } else {
+            setSidebar(false); // إخفاء السايدبار
+        }
+    }, [pathname, logged]);
+
 
     const access_url = () => {
 
@@ -73,6 +84,25 @@ export default function DefaultLayout({ children }) {
         dispatch(toggle_user(get_session('user')));
 
     }, [config.user.update]);
+
+
+    useEffect(() => {
+        const userSession = get_session('user');
+        const isLoggedIn = userSession?.access_token && userSession?.logged;
+
+        if (!isLoggedIn) {
+            router.replace('/auth/login'); // توجيه المستخدم إلى صفحة تسجيل الدخول
+            return; // إنهاء الدالة إذا لم يكن هناك جلسة
+        }
+
+        // تحقق من الحالة
+        setLogged(isLoggedIn);
+        dispatch(toggle_user(userSession));
+
+        // تنفيذ أي إعدادات أخرى تحتاجها
+    }, [config.user.update]);
+
+
     useEffect(() => {
 
         dispatch(toggle_theme(localStorage.getItem('theme') || config.theme));
@@ -98,14 +128,14 @@ export default function DefaultLayout({ children }) {
                 <Setting />
 
                 <div className={`${config.nav} main-container min-h-screen text-black dark:text-white-dark`}>
+                    {sidebar ? <Sidebar /> : null}
 
-                    <Sidebar />
 
                     {
                         logged ?
                             <div className="main-content">
 
-                                <Header />
+                                <Header setLogged={setLogged} />
 
                                 {
                                     animation &&
