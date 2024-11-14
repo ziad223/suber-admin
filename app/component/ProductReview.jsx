@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import Table from './table';
 import { get_session } from '@/public/script/public';
+import { useRouter } from 'next/navigation';
 const ProductReview = () => {
-
+  const router = useRouter()
 const [data, setData] = useState([]);
 
    const columns = () => {
